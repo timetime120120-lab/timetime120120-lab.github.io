@@ -1134,7 +1134,7 @@ statusEl.className = "status success";
 function missingProductFields(row){
  const required=[['material','Material'],['partname','Part Name'],['customer','ลูกค้า'],['boi_status','สถานะ BOI']];
  const missing=required.filter(([key])=>!String(row[key]??'').trim()).map(([,label])=>label);
- const qty=Number(row.qtyperbox);if(!Number.isInteger(qty)||qty<=0)missing.push('จำนวนต่อ 1 กล่อง (ต้องเป็นจำนวนเต็มมากกว่า 0)');
+ const qty=Number(row.qtyperbox);if(String(row.qtyperbox??'').trim() && (!Number.isInteger(qty)||qty<=0))missing.push('จำนวนต่อ 1 กล่อง (ต้องเป็นจำนวนเต็มมากกว่า 0)');
  return missing;
 }
 function showProductWarning(row,target){
@@ -1171,7 +1171,7 @@ return;
 }
 
 let boiStatus = found.boi_status ? found.boi_status.trim().toUpperCase() : "";
-const qtyPerBoxFromExcel = Number.isInteger(Number(found.qtyperbox)) && Number(found.qtyperbox)>0 ? Number(found.qtyperbox) : '';
+const qtyPerBoxFromExcel = Number.isInteger(Number(found.qtyperbox)) && Number(found.qtyperbox)>0 ? Number(found.qtyperbox) : 1;
 // ดึงค่า PRE จาก Excel
 const preCodeFromExcel = found.precode ? found.precode.trim() : "";
 
@@ -1204,6 +1204,7 @@ document.getElementById('qcBy').value = productData.qcby;
 showProductWarning(found,document.getElementById('productMissingWarning'));
 statusEl.textContent = missingProductFields(found).length ? '⚠️ พบสินค้า แต่ข้อมูลยังไม่ครบ' : '✅ ค้นหาเสร็จสิ้น';
 statusEl.className = missingProductFields(found).length ? 'status error' : 'status success';
+if(!String(found.qtyperbox??'').trim())statusEl.textContent+=' • ใช้ค่าเริ่มต้น 1 ชิ้นต่อกล่อง';
 if(qtyPerBoxFromExcel)calculateAndGenerate();else {document.getElementById('labelContainer').replaceChildren();document.getElementById('calcResult').textContent='กรุณาระบุจำนวนต่อ 1 กล่องก่อนสร้างฉลาก';}
 }
 
@@ -1404,7 +1405,7 @@ function showProductDetails(row){
  if(key){const img=document.createElement('img');img.src=EMBEDDED_IMAGES[key];img.alt=String(row.partname||row.partcode||'รูปสินค้า');img.onerror=()=>{const note=document.createElement('p');note.textContent='ไม่สามารถแสดงรูปภาพนี้ได้';photo.replaceChildren(note)};photo.append(img)}
  else{const note=document.createElement('p');note.textContent='ยังไม่มีรูปภาพที่เชื่อมโยงกับสินค้านี้';photo.append(note)}
  const details=$('productDetailsFields');details.replaceChildren();
- Array.from(new Set([...fields,...Object.keys(row)])).forEach(key=>{const term=document.createElement('dt'),value=document.createElement('dd');term.textContent=names[fields.indexOf(key)]||key;value.textContent=row[key]===null||row[key]===undefined||String(row[key]).trim()===''?'—':String(row[key]);details.append(term,value)});
+ Array.from(new Set([...fields,...Object.keys(row)])).forEach(key=>{const term=document.createElement('dt'),value=document.createElement('dd');term.textContent=names[fields.indexOf(key)]||key;value.textContent=key==='qtyperbox'&&!String(row[key]??'').trim()?'1 (ค่าเริ่มต้น)':row[key]===null||row[key]===undefined||String(row[key]).trim()===''?'—':String(row[key]);details.append(term,value)});
  showProductWarning(row,$('productDetailsWarning'));
  $('productDetails').showModal();
 }
