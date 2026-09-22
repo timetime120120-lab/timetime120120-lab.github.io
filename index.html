@@ -932,7 +932,7 @@ function saveHtmlWithImages() {
  });
  const state = {excelData, currentImg, imageLinks: PRODUCT_IMAGE_LINKS, form};
  const clone = document.documentElement.cloneNode(true);
- clone.querySelectorAll('.hub-launch,.data-launch').forEach(el => el.remove());
+ clone.querySelectorAll('.hub-launch,.data-launch,.mobile-preview-tools').forEach(el => el.remove());
  const dataHub = clone.querySelector('#dataHub');
  if(dataHub){dataHub.removeAttribute('open');['dataHead','dataRows','dataImages','dataSettings'].forEach(id=>dataHub.querySelector('#'+id).replaceChildren());}
  const hub = clone.querySelector('#updateHub');
@@ -1367,6 +1367,64 @@ $('dataCSV').onclick=()=>csv(excelData,'ALL-LABEL-products.csv');$('dataFiltered
 $('dataExcel').onclick=()=>{try{if(typeof XLSX==='undefined')throw Error('โหลดเครื่องมือ Excel ไม่สำเร็จ กรุณาเชื่อมต่ออินเทอร์เน็ตแล้วเปิดใหม่ หรือดาวน์โหลด CSV');const cols=columns(),wb=XLSX.utils.book_new(),sheet=XLSX.utils.aoa_to_sheet([cols,...excelData.map(r=>cols.map(k=>String(r[k]??'')))]);XLSX.utils.book_append_sheet(wb,sheet,'Products');save(new Blob([XLSX.write(wb,{bookType:'xlsx',type:'array'})],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'}),'ALL-LABEL-products.xlsx')}catch(e){$('dataNotice').textContent=e.message}};
 $('dataJSON').onclick=()=>save(new Blob([JSON.stringify({version:1,exportedAt:new Date().toISOString(),excelData,images:EMBEDDED_IMAGES,imageLinks:PRODUCT_IMAGE_LINKS,currentImg,form:settings()},null,2)],{type:'application/json;charset=utf-8'}),'ALL-LABEL-backup.json');
 $('dataHTML').onclick=()=>{saveHtmlWithImages();$('dataNotice').textContent='ส่งไฟล์ HTML พร้อมข้อมูลและรูปทั้งหมดให้เบราว์เซอร์ดาวน์โหลดแล้ว'};
+})();
+</script>
+
+
+<!-- Mobile layout: screen-only changes preserve the original A4 print layout. -->
+<style id="mobileStyles">
+.mobile-nav,.mobile-preview-tools{display:none}
+@media screen and (max-width:1100px){
+html{scroll-behavior:smooth;scroll-padding-bottom:90px}
+body{display:block;padding:12px 12px calc(90px + env(safe-area-inset-bottom));min-width:0}
+.control-panel{position:relative;top:auto;left:auto;width:100%;max-width:760px;max-height:none;overflow:visible;margin:0 auto 20px;padding:18px;z-index:auto}
+.panel-header{margin-bottom:16px;padding-bottom:14px}.panel-title{font-size:21px}
+.control-panel .form-group{padding:16px;margin-bottom:16px;scroll-margin-top:14px}
+.control-panel .form-row{min-width:0}.control-panel .form-row input,.control-panel .form-row select{font-size:16px;min-height:46px;max-width:100%;width:100%}
+.control-panel .btn,.control-panel button{min-height:48px;width:100%;margin:8px 0 0;white-space:normal;line-height:1.4;font-size:16px;touch-action:manipulation}
+.control-panel button:not(.btn){border:1px solid #63718b;border-radius:8px;background:#334155;color:white;padding:12px}
+.control-panel input[type=file]{font-size:14px}.control-panel input[type=file]::file-selector-button{padding:10px;border:0;border-radius:6px;margin-right:8px}
+.toggle-row{min-height:48px;gap:12px}.toggle-label{flex:1;line-height:1.5}.toggle-switch{flex-shrink:0}
+.suggestions-list{max-height:240px;overflow:auto;z-index:30}.suggestions-list>div{min-height:48px;padding:12px}
+.preview-area{margin:0 auto;min-width:0;width:100%;max-width:760px;padding:12px;min-height:0;overflow:auto;scroll-margin-top:12px}
+.label-grid{zoom:var(--mobile-preview-scale,1)}
+.mobile-preview-tools{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-bottom:16px;color:#334155;font-size:14px}
+.mobile-preview-tools p{width:100%;margin:0;line-height:1.5}.mobile-preview-tools button{background:#2563eb;color:white;border:0;border-radius:8px;padding:12px;min-height:46px;font-size:16px;flex:1}
+.mobile-nav{position:fixed;bottom:0;left:0;right:0;display:flex;gap:6px;padding:8px 10px calc(8px + env(safe-area-inset-bottom));background:#17243b;box-shadow:0 -2px 14px #0003;z-index:40}
+.mobile-nav button{flex:1;min-width:0;min-height:48px;border:1px solid #4b648b;border-radius:8px;color:white;background:#263b59;font-size:14px;font-weight:600;touch-action:manipulation}
+#updateHub,#dataHub{width:100%;max-width:100%;height:100dvh;max-height:100dvh;inset:0;margin:0;border-radius:0;overflow:auto;padding-bottom:env(safe-area-inset-bottom)}
+#updateHub header,#dataHub header{padding:16px;gap:12px;align-items:flex-start;flex-wrap:wrap}
+#updateHub header h2,#dataHub header h2{font-size:20px}#updateHub header button,#dataHub header button{min-height:44px;flex-shrink:0}
+#updateHub main,#dataHub main{padding:14px}#hubEditor{grid-template-columns:1fr!important}
+#updateHub input,#updateHub select,#dataHub input{font-size:16px;min-height:46px}
+#updateHub button,#dataHub button,#dataHub .data-link{min-height:46px;font-size:16px;white-space:normal}
+#updateHub .hub-actions,#dataHub .data-actions{gap:8px}#updateHub .hub-actions button,#dataHub .data-actions button{flex:1 1 180px}
+#dataHub section{padding:14px}#dataHub .data-scroll{max-height:55vh}#dataImages{grid-template-columns:repeat(auto-fill,minmax(135px,1fr))}
+#hubDrop{font-size:16px!important;padding:20px!important}#updateHub p,#updateHub small,#dataHub p{overflow-wrap:anywhere}
+}
+@media screen and (max-width:380px){body{padding-left:8px;padding-right:8px}.control-panel{padding:12px}.control-panel .form-group{padding:12px}.mobile-nav button{font-size:12px}}
+@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto!important}}
+@media print{.mobile-nav,.mobile-preview-tools{display:none!important}.label-grid{zoom:1!important}}
+</style>
+<nav class="mobile-nav" aria-label="เมนูลัดมือถือ">
+<button type="button" id="mobileForm">กรอกข้อมูล</button><button type="button" id="mobilePreview">ดูฉลาก</button><button type="button" id="mobileData">ดาวน์โหลด</button><button type="button" id="mobileUpdate">อัปเดต</button>
+</nav>
+<script>
+(()=>{
+const panel=document.querySelector('.control-panel'),preview=document.querySelector('.preview-area'),grid=document.getElementById('labelContainer');
+const media=window.matchMedia('(max-width:1100px)');
+let fullSize=false;
+let toolbar=preview.querySelector('.mobile-preview-tools');
+if(!toolbar){toolbar=document.createElement('div');toolbar.className='mobile-preview-tools';toolbar.innerHTML='<p>ตัวอย่างฉลาก • ย่อให้พอดีหน้าจอ ขนาดพิมพ์ยังเป็น A4 เหมือนเดิม</p><button type="button" id="mobileZoom" aria-pressed="false">ดูขนาดจริง</button><button type="button" id="mobilePrint">พิมพ์ฉลาก</button>';preview.prepend(toolbar)}
+function resize(){const scale=media.matches&&!fullSize?Math.min(1,Math.max(0.1,(preview.clientWidth-26)/(194*96/25.4))):1;grid.style.setProperty('--mobile-preview-scale',String(scale))}
+document.getElementById('mobileZoom').onclick=()=>{fullSize=!fullSize;document.getElementById('mobileZoom').textContent=fullSize?'ย่อพอดีจอ':'ดูขนาดจริง';document.getElementById('mobileZoom').setAttribute('aria-pressed',String(fullSize));resize()};
+document.getElementById('mobilePrint').onclick=()=>window.print();
+document.getElementById('mobileForm').onclick=()=>document.getElementById('partCodeInput').closest('.form-group').scrollIntoView({block:'start'});
+document.getElementById('mobilePreview').onclick=()=>{resize();preview.scrollIntoView({block:'start'})};
+document.getElementById('mobileData').onclick=()=>document.querySelector('.data-launch').click();
+document.getElementById('mobileUpdate').onclick=()=>document.querySelector('.hub-launch').click();
+['totalQty','qtyPerBox'].forEach(id=>document.getElementById(id).setAttribute('inputmode','numeric'));
+window.addEventListener('resize',resize);window.addEventListener('load',resize);if(typeof ResizeObserver!=='undefined')new ResizeObserver(resize).observe(preview);resize();
 })();
 </script>
 
