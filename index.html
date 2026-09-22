@@ -712,6 +712,23 @@ body {display:block!important; padding:0!important; margin:0!important; backgrou
 </style>
 
 
+
+<style id="simplifiedControlPanel">
+/* Keep stored values available to label generation while removing these controls from the menu. */
+.control-panel .form-group:has(#grayscaleToggle),
+.control-panel .form-group:has(#dropZone) > h4,
+.control-panel #dropZone,
+.control-panel .form-row:has(#excelFile),
+.control-panel .form-row:has(#imgFolderPath),
+.control-panel .form-row:has(#preValue),
+.control-panel #docNoRow,
+.control-panel .form-row:has(#poNo),
+.control-panel .form-row:has(#addProductImagesButton),
+.control-panel .form-row:has(#productImageFile),
+.control-panel .form-row:has(#packedBy),
+.control-panel .form-row:has(#qcBy),
+.control-panel > .info-box { display:none!important; }
+</style>
 </head>
 <body>
 <div class="control-panel">
@@ -1123,7 +1140,7 @@ function processExcelData(wb) {
 const sheet = wb.Sheets[wb.SheetNames[0]];
 // เพิ่มคอลัมน์ precode เข้าไปอ่านข้อมูล
 excelData = XLSX.utils.sheet_to_json(sheet, {
-header: ["partcode", "customer", "partname", "material", "lotno", "proddate", "packedby", "qcby", "imagefile", "boi_status", "qtyperbox", "precode"]
+header: ["partcode", "customer", "partname", "material", "lotno", "proddate", "packedby", "qcby", "imagefile", "boi_status", "qtyperbox", "precode", "qtyperbag"]
 });
 const statusEl = document.getElementById('status');
 statusEl.textContent = `✅ โหลดข้อมูลสำเร็จ ${excelData.length} รายการ`;
@@ -1194,6 +1211,8 @@ document.getElementById('partName').value = productData.partname;
 document.getElementById('material').value = productData.material;
 document.getElementById('boiStatus').value = productData.boi_status;
 document.getElementById('qtyPerBox').value = productData.qtyperbox;
+const bagInput=document.getElementById('qtyPerBag');
+if(bagInput)bagInput.value=Number.isInteger(Number(found.qtyperbag))&&Number(found.qtyperbag)>0?String(found.qtyperbag):'';
 // เติมค่า PRE อัตโนมัติ
 document.getElementById('preValue').value = productData.precode;
 document.getElementById('lotNo').value = found.lotno || "";
@@ -1210,7 +1229,8 @@ if(qtyPerBoxFromExcel)calculateAndGenerate();else {document.getElementById('labe
 
 function calculateAndGenerate() {
 const total = parseInt(document.getElementById('totalQty').value) || 0;
-const perBox = parseInt(document.getElementById('qtyPerBox').value) || 0;
+const smallMode = document.getElementById('labelMode')?.value === 'small';
+const perBox = parseInt(document.getElementById(smallMode ? 'qtyPerBag' : 'qtyPerBox')?.value) || 0;
 const partCode = document.getElementById('partCodeInput').value.trim();
 const showDocNo = document.getElementById('showDocNoToggle').checked;
 const showBarcode = document.getElementById('showBarcodeToggle').checked;
@@ -1221,8 +1241,12 @@ if (!partCode) {
 document.getElementById('labelContainer').innerHTML='';
 return;
 }
+if(smallMode && (!Number.isInteger(Number(document.getElementById('qtyPerBag')?.value)) || perBox<=0)){
+document.getElementById('labelContainer').replaceChildren();
+document.getElementById('calcResult').textContent='กรุณาระบุจำนวนต่อถุง (ชิ้น) สำหรับลาเบลเล็ก หรือบันทึกค่าในหน้าเพิ่ม/แก้ไขข้อมูลสินค้า';return;
+}
 if (total <= 0 || perBox <= 0) {
-alert("⚠️ กรอกจำนวนรวมและจำนวนต่อกล่องให้ถูกต้อง");
+alert(smallMode ? "⚠️ กรอกจำนวนรวมและจำนวนต่อถุงให้ถูกต้อง" : "⚠️ กรอกจำนวนรวมและจำนวนต่อกล่องให้ถูกต้อง");
 return;
 }
 
@@ -1314,7 +1338,7 @@ calculateAndGenerate();
 <main><div id="hubStats">สินค้าทั้งหมด 209 รายการ • รูปภาพ 207 รูป</div><p>1. เลือกไฟล์หรือลากมาวาง → 2. ตรวจรายการและอัปเดต → 3. บันทึกไฟล์พร้อมใช้งาน</p>
 <button id="hubDrop" type="button">＋ ลาก Excel และรูปภาพทั้งหมดมาวางที่นี่<br><small>หรือคลิกเลือกหลายไฟล์ • XLSX, XLS, CSV, PNG, JPG, WEBP, GIF</small></button>
 <input id="hubFiles" type="file" multiple="" accept=".xlsx,.xls,.csv,.png,.jpg,.jpeg,.webp,.gif,.bmp">
-<p><small>Excel ใช้ชีตแรก: partcode, customer, partname, material, lotno, proddate, packedby, qcby, imagefile, boi_status, qtyperbox, precode — รองรับหัวคอลัมน์ภาษาอังกฤษ หรือลำดับคอลัมน์เดิมที่ไม่มีหัวตาราง รูปจับคู่ตาม imagefile หรือรหัสสินค้าเมื่อช่อง imagefile ว่าง</small></p>
+<p><small>Excel ใช้ชีตแรก: partcode, customer, partname, material, lotno, proddate, packedby, qcby, imagefile, boi_status, qtyperbox, precode, qtyperbag (จำนวนต่อถุง) — รองรับหัวคอลัมน์ภาษาอังกฤษ หรือลำดับคอลัมน์เดิมที่ไม่มีหัวตาราง รูปจับคู่ตาม imagefile หรือรหัสสินค้าเมื่อช่อง imagefile ว่าง</small></p>
 <label>วิธีอัปเดตข้อมูล<select id="hubMode"><option value="merge">เพิ่มสินค้าใหม่ / อัปเดตรหัสเดิม (เก็บสินค้าอื่นไว้)</option><option value="replace">แทนที่ตารางสินค้าทั้งหมดด้วยข้อมูลที่เลือก</option></select></label>
 <p><small>รูปชื่อเดิมจะถูกแทนที่ หากมีรหัสหรือชื่อรูปซ้ำในชุดที่เลือก ระบบจะให้แก้ไขก่อนอัปเดต</small></p>
 <ul id="hubQueue"></ul><div class="hub-actions"><button id="hubApply" class="hub-primary" disabled="">อัปเดตทั้งหมด</button><button id="hubClear">ล้างรายการที่เลือก</button><button id="hubTemplate">ดาวน์โหลดตัวอย่าง CSV</button></div>
@@ -1325,12 +1349,12 @@ calculateAndGenerate();
 <script>
 (()=>{
 const $=id=>document.getElementById(id);
-const fields=['partcode','customer','partname','material','lotno','proddate','packedby','qcby','imagefile','boi_status','qtyperbox','precode'];
-const labels=['รหัสสินค้า','ลูกค้า','ชื่อสินค้า','วัสดุ','เลขที่ล็อต','วันที่ผลิต (YYYY-MM-DD)','ผู้บรรจุ','ผู้ตรวจสอบ','ชื่อไฟล์รูปภาพ','สถานะ BOI','จำนวนต่อกล่อง','ข้อมูล PRE'];
+const fields=['partcode','customer','partname','material','lotno','proddate','packedby','qcby','imagefile','boi_status','qtyperbox','precode','qtyperbag'];
+const labels=['รหัสสินค้า','ลูกค้า','ชื่อสินค้า','วัสดุ','เลขที่ล็อต','วันที่ผลิต (YYYY-MM-DD)','ผู้บรรจุ','ผู้ตรวจสอบ','ชื่อไฟล์รูปภาพ','สถานะ BOI','จำนวนต่อกล่อง','ข้อมูล PRE','จำนวนต่อถุง (ชิ้น)'];
 let pending=[],busy=false,dirty=false;
 window.addEventListener('label-data-changed',()=>{dirty=true;refresh()});
 const launch=document.createElement('button');launch.type='button';launch.className='btn primary hub-launch';launch.textContent='📥 ศูนย์อัปเดตไฟล์ รูปภาพ และข้อมูล';document.querySelector('.panel-header').after(launch);
-fields.forEach((f,i)=>{const label=document.createElement('label');label.textContent=labels[i];const input=document.createElement('input');input.id='hubField_'+f;input.type='text';label.append(input);$('hubEditor').append(label)});
+fields.forEach((f,i)=>{const label=document.createElement('label');label.textContent=labels[i];const input=document.createElement('input');input.id='hubField_'+f;input.type=f==='qtyperbag'?'number':'text';if(f==='qtyperbag'){input.min='1';input.step='1';input.placeholder='สำหรับลาเบลเล็ก';}label.append(input);$('hubEditor').append(label)});
 function status(t){$('hubStatus').textContent=t}
 function refresh(){ $('hubStats').textContent=`สินค้าทั้งหมด ${excelData.length} รายการ • รูปภาพ ${Object.keys(EMBEDDED_IMAGES).length} รูป`;const select=$('hubProduct');select.replaceChildren(new Option('เพิ่มสินค้าใหม่',''));excelData.forEach(r=>select.add(new Option(String(r.partcode)+' — '+(r.partname||''),String(r.partcode))));updateImageLibraryStatus(); }
 launch.onclick=()=>{refresh();$('updateHub').showModal()};$('hubClose').onclick=()=>$('updateHub').close();
@@ -1339,7 +1363,7 @@ $('hubDrop').onclick=()=>$('hubFiles').click();$('hubFiles').onchange=e=>{queue(
 for(const name of ['dragenter','dragover'])$('hubDrop').addEventListener(name,e=>{e.preventDefault();$('hubDrop').classList.add('over')});
 $('hubDrop').ondragleave=()=>$('hubDrop').classList.remove('over');$('hubDrop').ondrop=e=>{e.preventDefault();$('hubDrop').classList.remove('over');if(!busy)queue(e.dataTransfer.files)};
 $('hubClear').onclick=()=>{pending=[];queue([])};
-function parseRows(wb){const rows=XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]],{header:1,defval:'',raw:false}).filter(r=>r.some(v=>String(v).trim()));if(!rows.length)throw Error('ตารางว่าง');const header=rows[0].map(v=>String(v).trim().toLowerCase());const named=header.includes('partcode');return rows.slice(named?1:0).map((r,i)=>{const out={};fields.forEach((f,j)=>out[f]=String(r[named?header.indexOf(f):j]??'').trim());if(!out.partcode)throw Error('ไม่มีรหัสสินค้า แถว '+(i+(named?2:1)));if(out.qtyperbox&&(!Number.isInteger(Number(out.qtyperbox))||Number(out.qtyperbox)<=0))throw Error('จำนวนต่อกล่องไม่ถูกต้อง: '+out.partcode);return out})}
+function parseRows(wb){const rows=XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]],{header:1,defval:'',raw:false}).filter(r=>r.some(v=>String(v).trim()));if(!rows.length)throw Error('ตารางว่าง');const header=rows[0].map(v=>String(v).trim().toLowerCase());const named=header.includes('partcode');return rows.slice(named?1:0).map((r,i)=>{const out={};fields.forEach((f,j)=>out[f]=String(r[named?header.indexOf(f):j]??'').trim());if(!out.partcode)throw Error('ไม่มีรหัสสินค้า แถว '+(i+(named?2:1)));if(out.qtyperbox&&(!Number.isInteger(Number(out.qtyperbox))||Number(out.qtyperbox)<=0))throw Error('จำนวนต่อกล่องไม่ถูกต้อง: '+out.partcode);if(out.qtyperbag&&(!Number.isInteger(Number(out.qtyperbag))||Number(out.qtyperbag)<=0))throw Error('จำนวนต่อถุงไม่ถูกต้อง: '+out.partcode);return out})}
 function readImage(file){return new Promise((resolve,reject)=>{const reader=new FileReader();reader.onerror=()=>reject(Error('อ่านรูปไม่ได้'));reader.onload=()=>{const img=new Image();img.onload=()=>resolve(reader.result);img.onerror=()=>reject(Error('รูปเสียหรือรูปแบบไม่รองรับ'));img.src=reader.result};reader.readAsDataURL(file)})}
 function sync(){const code=$('partCodeInput').value.trim();if(excelData.some(r=>String(r.partcode).trim()===code))searchData();else calculateAndGenerate();refresh();dirty=true}
 $('hubApply').onclick=async()=>{if(busy||!pending.length)return;busy=true;const controls=Array.from($('updateHub').querySelectorAll('button,input,select'));controls.forEach(x=>x.disabled=true);status('กำลังตรวจสอบไฟล์ทั้งหมด…');const rows=[],images=Object.create(null),codes=new Set();let active='';try{for(const file of pending){active=file.name;const ext=file.name.split('.').pop().toLowerCase();if(['xlsx','xls','csv'].includes(ext)){if(typeof XLSX==='undefined')throw Error('โหลดตัวอ่าน Excel ไม่สำเร็จ กรุณาเชื่อมต่ออินเทอร์เน็ตแล้วเปิดใหม่');for(const r of parseRows(XLSX.read(await file.arrayBuffer(),{type:'array'}))){if(codes.has(r.partcode))throw Error('รหัสสินค้าซ้ำในชุดนำเข้า: '+r.partcode);codes.add(r.partcode);rows.push(r)}}else if(['png','jpg','jpeg','webp','gif','bmp'].includes(ext)){const key=imageKey(file.name);if(Object.hasOwn(images,key))throw Error('ชื่อรูปซ้ำ: '+key);images[key]=await readImage(file)}else throw Error('ไม่รองรับไฟล์ชนิดนี้')}
@@ -1349,7 +1373,7 @@ rows.forEach(r=>delete PRODUCT_IMAGE_LINKS[r.partcode]);Object.assign(EMBEDDED_I
 sync();pending=[];$('hubQueue').replaceChildren();status(`อัปเดตสำเร็จ: ${rows.length} รายการ / ${Object.keys(images).length} รูป\nกรุณากดบันทึก HTML เพื่อเก็บข้อมูลทั้งหมด`);
 }catch(e){status('อัปเดตไม่สำเร็จ: '+active+' — '+e.message+'\nกรุณาตรวจสอบไฟล์ แล้วลองใหม่')}finally{busy=false;controls.forEach(x=>x.disabled=false);$('hubApply').disabled=!pending.length}};
 $('hubProduct').onchange=()=>{const r=excelData.find(r=>String(r.partcode)===$('hubProduct').value)||{};fields.forEach(f=>$('hubField_'+f).value=r[f]??'')};
-$('hubSaveRow').onclick=()=>{const r={};fields.forEach(f=>r[f]=$('hubField_'+f).value.trim());if(!r.partcode){status('กรุณากรอกรหัสสินค้า');return}if(r.qtyperbox&&(!Number.isInteger(+r.qtyperbox)||+r.qtyperbox<=0)){status('จำนวนต่อกล่องต้องเป็นจำนวนเต็มมากกว่า 0');return}const selected=$('hubProduct').value;if(selected&&selected!==r.partcode){status('การแก้ไขต้องใช้รหัสเดิม หากต้องการเพิ่มสินค้าให้เลือก “เพิ่มสินค้าใหม่”');return}if(!selected&&excelData.some(x=>String(x.partcode)===r.partcode)){status('รหัสนี้มีอยู่แล้ว กรุณาเลือกสินค้าจากรายการเพื่อแก้ไข');return}const index=excelData.findIndex(x=>String(x.partcode)===r.partcode);if(index<0)excelData.push(r);else excelData[index]=r;delete PRODUCT_IMAGE_LINKS[r.partcode];sync();$('hubProduct').value=r.partcode;status('บันทึกสินค้า '+r.partcode+' แล้ว กรุณาบันทึก HTML เพื่อเก็บถาวร')};
+$('hubSaveRow').onclick=()=>{const r={};fields.forEach(f=>r[f]=$('hubField_'+f).value.trim());if(!r.partcode){status('กรุณากรอกรหัสสินค้า');return}if(r.qtyperbox&&(!Number.isInteger(+r.qtyperbox)||+r.qtyperbox<=0)){status('จำนวนต่อกล่องต้องเป็นจำนวนเต็มมากกว่า 0');return}if(r.qtyperbag&&(!Number.isInteger(+r.qtyperbag)||+r.qtyperbag<=0)){status('จำนวนต่อถุงต้องเป็นจำนวนเต็มมากกว่า 0');return}const selected=$('hubProduct').value;if(selected&&selected!==r.partcode){status('การแก้ไขต้องใช้รหัสเดิม หากต้องการเพิ่มสินค้าให้เลือก “เพิ่มสินค้าใหม่”');return}if(!selected&&excelData.some(x=>String(x.partcode)===r.partcode)){status('รหัสนี้มีอยู่แล้ว กรุณาเลือกสินค้าจากรายการเพื่อแก้ไข');return}const index=excelData.findIndex(x=>String(x.partcode)===r.partcode);if(index<0)excelData.push(r);else excelData[index]=r;delete PRODUCT_IMAGE_LINKS[r.partcode];sync();$('hubProduct').value=r.partcode;status('บันทึกสินค้า '+r.partcode+' แล้ว กรุณาบันทึก HTML เพื่อเก็บถาวร')};
 $('hubExport').onclick=()=>{saveHtmlWithImages();dirty=false;status('ส่งไฟล์ให้เบราว์เซอร์ดาวน์โหลดแล้ว กรุณาตรวจสอบไฟล์และใช้ไฟล์ใหม่ในครั้งถัดไป')};
 $('hubTemplate').onclick=()=>{const text='\ufeff'+fields.join(',')+'\r\nDEMO-001,Customer,Sample,Steel,LOT001,2026-09-22,PACKER,QC,DEMO-001.png,BOI,100,PRE001\r\n';const url=URL.createObjectURL(new Blob([text],{type:'text/csv;charset=utf-8'}));const a=document.createElement('a');a.href=url;a.download='ALL-LABEL-template.csv';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000)};
 window.addEventListener('beforeunload',e=>{if(dirty){e.preventDefault();e.returnValue=''}});
@@ -1379,8 +1403,8 @@ window.addEventListener('beforeunload',e=>{if(dirty){e.preventDefault();e.return
 <script>
 (()=>{
 'use strict';
-const $=id=>document.getElementById(id),fields=['partcode','customer','partname','material','lotno','proddate','packedby','qcby','imagefile','boi_status','qtyperbox','precode'];
-const names=['รหัสสินค้า','ลูกค้า','ชื่อสินค้า','วัสดุ','เลขที่ล็อต','วันที่ผลิต','ผู้บรรจุ','ผู้ตรวจสอบ','ชื่อไฟล์รูปภาพ','สถานะ BOI','จำนวนต่อกล่อง','ข้อมูล PRE'];
+const $=id=>document.getElementById(id),fields=['partcode','customer','partname','material','lotno','proddate','packedby','qcby','imagefile','boi_status','qtyperbox','precode','qtyperbag'];
+const names=['รหัสสินค้า','ลูกค้า','ชื่อสินค้า','วัสดุ','เลขที่ล็อต','วันที่ผลิต','ผู้บรรจุ','ผู้ตรวจสอบ','ชื่อไฟล์รูปภาพ','สถานะ BOI','จำนวนต่อกล่อง','ข้อมูล PRE','จำนวนต่อถุง (ชิ้น)'];
 let page=0;const pageSize=50;
 const launch=document.createElement('button');launch.type='button';launch.className='btn primary data-launch';launch.textContent='📤 ดูและดาวน์โหลดข้อมูล';document.querySelector('.panel-header').after(launch);
 const columns=()=>Array.from(new Set([...fields,...excelData.flatMap(r=>Object.keys(r))]));
@@ -1504,6 +1528,7 @@ window.addEventListener('resize',resize);window.addEventListener('load',resize);
 .small-photo{padding:1.5mm;display:flex;align-items:center;justify-content:center;min-height:0}
 .small-photo img{width:100%;height:100%;object-fit:contain}
 #smallLabelOptions{line-height:1.7;font-size:13px}
+.form-row[hidden],#smallLabelOptions[hidden]{display:none!important}
 .label-mode-nav{flex-wrap:wrap}.label-mode-nav button{min-width:110px}
 @media print{#smallLabelOptions{display:none!important}.small-page{margin:0}}
 
@@ -1529,8 +1554,13 @@ const nav=document.createElement('nav');nav.className='label-mode-nav';nav.setAt
 const options=document.createElement('div');options.id='smtlOptions';options.className='form-group';options.innerHTML='<h4>LABEL SMTL</h4><p>A4 แนวนอน · 4 ช่อง (2 × 2) · ฉลาก 138.5 × 96 มม. · ขอบกระดาษ 8 มม. · พิมพ์ 100% และปิดหัว/ท้ายกระดาษ</p><div class="form-row"><label for="smtlPlant">Plant</label><input id="smtlPlant" value="PDE"></div><p>ใช้ช่องข้อมูลสินค้า จำนวนรวม และจำนวนต่อกล่องด้านล่าง เช่น 288 ÷ 72 = 4 ฉลาก</p>';nav.after(options);
 }
 if(!document.querySelector('[data-mode="small"]')){const button=document.createElement('button');button.type='button';button.dataset.mode='small';button.textContent='ลาเบลเล็ก · 16 ช่อง';document.querySelector('.label-mode-nav').append(button);}
-if(!$('smallLabelOptions')){const info=document.createElement('div');info.id='smallLabelOptions';info.className='form-group';info.innerHTML='<h4>ลาเบลขนาดเล็ก · 2 × 8</h4><p>A4 แนวตั้ง · 16 ฉลากต่อแผ่น · ฉลาก 95 × 32.5 มม. · ขอบกระดาษ 8 มม.</p><p>พิมพ์ขนาดจริง 100% และปิดหัว/ท้ายกระดาษ<br>จำนวนฉลากคำนวณจากจำนวนรวม ÷ จำนวนต่อกล่อง เช่น 3,200 ÷ 200 = 16 ฉลาก</p>';document.querySelector('.label-mode-nav').after(info);}
-['labelMode','smtlPlant'].forEach(id=>{if(SAVED_LABEL_STATE.form?.[id])$(id).value=SAVED_LABEL_STATE.form[id].value});
+if(!$('smallLabelOptions')){const info=document.createElement('div');info.id='smallLabelOptions';info.className='form-group';info.innerHTML='<h4>ลาเบลขนาดเล็ก · 2 × 8</h4><p>A4 แนวตั้ง · 16 ฉลากต่อแผ่น · ฉลาก 95 × 32.5 มม. · ขอบกระดาษ 8 มม.</p><p>พิมพ์ขนาดจริง 100% และปิดหัว/ท้ายกระดาษ<br>จำนวนฉลากคำนวณจากจำนวนรวม ÷ จำนวนต่อถุง เช่น 3,200 ÷ 200 = 16 ฉลาก</p>';document.querySelector('.label-mode-nav').after(info);}
+if(!$('qtyPerBag')){const row=document.createElement('div');row.className='form-row';const label=document.createElement('label');label.htmlFor='qtyPerBag';label.textContent='จำนวนต่อถุง (ชิ้น)';const input=document.createElement('input');input.id='qtyPerBag';input.type='number';input.min='1';input.step='1';const selectedProduct=excelData.find(r=>String(r.partcode).trim()===$('partCodeInput').value.trim());input.value=SAVED_LABEL_STATE.form?.qtyPerBag?.value ?? selectedProduct?.qtyperbag ?? '';row.append(label,input);$('smallLabelOptions').append(row);}
+// Keep the small-label settings beside the total quantity, including after saving HTML.
+const boxQuantityRow=$('qtyPerBox').closest('.form-row');
+boxQuantityRow.before($('smallLabelOptions'));
+$('smallLabelOptions').style.marginBottom='16px';
+['labelMode','smtlPlant','qtyPerBag'].forEach(id=>{if(SAVED_LABEL_STATE.form?.[id])$(id).value=SAVED_LABEL_STATE.form[id].value});
 const original=renderLabels;
 function fit(){document.querySelectorAll('.small-row strong,.smtl-value,.smtl-customer strong,.smtl-right-row b,.smtl-plant strong,.smtl-po').forEach(el=>{el.style.fontSize='';let size=parseFloat(getComputedStyle(el).fontSize);while((el.scrollWidth>el.clientWidth||el.scrollHeight>el.clientHeight)&&size>5){size-=.25;el.style.fontSize=size+'px'}})}
 renderLabels=function(boxes,...args){
@@ -1547,9 +1577,38 @@ const row=(caption,value)=>`<div class="smtl-right-row"><span>${caption}</span><
 boxes.forEach((box,i)=>{if(i%4===0){page=document.createElement('div');page.className='smtl-page';container.append(page)}const label=document.createElement('article');label.className='smtl-label';label.innerHTML=`<div class="smtl-header"><img src="${LOGO_PATH}" alt="RUI PENG FEI"><div class="smtl-rohs">RoHS</div></div><div class="smtl-customer"><span class="smtl-caption">Customer :</span><strong>${v('customer')}</strong></div><div class="smtl-body"><div class="smtl-left"><div class="smtl-data"><span class="smtl-caption">Part Code :</span><div class="smtl-value smtl-code">${v('partCodeInput')}</div></div><div class="smtl-data"><span class="smtl-caption">Material</span><div class="smtl-value">${v('material')}</div></div><div class="smtl-data"><span class="smtl-caption">Q'ty / Pcs :</span><div class="smtl-value smtl-qty">${box.qty.toLocaleString()}</div></div><div class="smtl-product"><div class="smtl-plant"><span>Plant</span><strong>${v('smtlPlant')}</strong></div><div class="smtl-photo">${currentImg?`<img src="${escapeHTML(currentImg)}" alt="รูปสินค้า">`:''}</div></div></div><div class="smtl-right">${row('Part Name :',v('partName'))}<div class="smtl-po"><strong>PO No./Item</strong> ${v('poNo')}</div>${row('Lot No. :',v('lotNo'))}${row('Prod Date :',escapeHTML(formatDateToDDMMYYYY($('prodDate').value)))}${row('Packed by:',v('packedBy'))}${row('Qc Checked by:',v('qcBy'))}<div></div></div></div>`;page.append(label)});
 $('calcResult').innerHTML=`รวม <strong>${boxes.length}</strong> ฉลาก SMTL • <strong>${Math.ceil(boxes.length/4)}</strong> แผ่น A4 แนวนอน (4 ช่องต่อแผ่น)`;fit();
 };
-function activate(){const smtl=$('labelMode').value==='smtl';$('smtlOptions').hidden=!smtl;$('smallLabelOptions').hidden=$('labelMode').value!=='small';document.body.classList.toggle('smtl-mode',smtl);let printStyle=$('smtlPrintOrientation');if(!printStyle){printStyle=document.createElement('style');printStyle.id='smtlPrintOrientation';document.head.append(printStyle)}printStyle.textContent='@media print{@page{size:A4 '+(smtl?'landscape':'portrait')+';margin:8mm}body.smtl-mode .label-grid{width:281mm;zoom:1!important}body.smtl-mode .preview-area{min-width:0!important}}';document.querySelectorAll('[data-mode]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.mode===$('labelMode').value)));calculateAndGenerate()}
+function activate(){const smtl=$('labelMode').value==='smtl';$('smtlOptions').hidden=!smtl;$('smallLabelOptions').hidden=$('labelMode').value!=='small';$('qtyPerBox').closest('.form-row').hidden=$('labelMode').value==='small';document.body.classList.toggle('smtl-mode',smtl);let printStyle=$('smtlPrintOrientation');if(!printStyle){printStyle=document.createElement('style');printStyle.id='smtlPrintOrientation';document.head.append(printStyle)}printStyle.textContent='@media print{@page{size:A4 '+(smtl?'landscape':'portrait')+';margin:8mm}body.smtl-mode .label-grid{width:281mm;zoom:1!important}body.smtl-mode .preview-area{min-width:0!important}}';document.querySelectorAll('[data-mode]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.mode===$('labelMode').value)));calculateAndGenerate()}
 document.querySelectorAll('[data-mode]').forEach(b=>b.onclick=()=>{$('labelMode').value=b.dataset.mode;activate()});$('smtlPlant').addEventListener('input',calculateAndGenerate);
 document.querySelector('.control-panel').addEventListener('input',e=>{if(e.target.matches('input:not([type=file])')&&e.target.id!=='partCodeInput')calculateAndGenerate()});window.addEventListener('beforeprint',fit);if(!SAVED_LABEL_STATE.form?.labelMode)$('labelMode').value='small';activate();
 })();
+</script>
+
+<style id="compactMenuRevision">
+.control-panel #status,.control-panel #calcResult{padding:6px 10px;margin:6px 0 0;min-height:0;font-size:12px;line-height:1.4;border-radius:5px}
+.control-panel .form-group:has(#status),.control-panel .form-group:has(#totalQty){padding-bottom:10px}
+.control-panel .form-row:has(#partCodeInput),.control-panel .form-row:has(#qtyPerBox){margin-bottom:8px}
+
+.control-panel #smtlOptions{padding:10px 12px;margin-bottom:10px;line-height:1.3}
+.control-panel #smtlOptions h4{font-size:13px;margin:0 0 7px;padding:0}
+.control-panel #smtlOptions .form-row{display:flex;align-items:center;gap:10px;margin:0}
+.control-panel #smtlOptions .form-row label{flex:0 0 auto;margin:0;font-size:12px}
+.control-panel #smtlOptions #smtlPlant{flex:1;min-width:0;width:100%;height:30px;min-height:30px;padding:4px 8px;margin:0;font-size:12px}
+
+#smallLabelOptions > p, #smtlOptions > p {display:none!important}
+
+.control-panel button[onclick="searchData()"],
+.control-panel button[onclick="calculateAndGenerate()"],
+.control-panel button[onclick="window.print()"],
+.control-panel .form-group:has(#totalQty) > h4 + p,
+.control-panel .form-group:has(#customer) > h4,
+.control-panel .form-row:has(#customer),
+.control-panel .form-row:has(#partName){display:none!important}
+.control-panel .label-mode-nav{gap:5px;margin:8px 0}
+.control-panel .label-mode-nav button{min-width:0;min-height:36px;padding:6px 5px;font-size:11px;line-height:1.3;border-radius:5px}
+.control-panel .hub-launch,.control-panel .data-launch{min-height:30px;padding:5px 9px;font-size:11px;line-height:1.4;margin:0 4px 6px 0;border-radius:5px}
+</style>
+<script>
+// Search remains available from the product-code input after removing its button.
+(()=>{const input=document.getElementById('partCodeInput');input.addEventListener('keydown',event=>{if(event.key==='Enter'){event.preventDefault();searchData();}});input.addEventListener('change',()=>{if(excelData.some(row=>String(row.partcode||'').trim()===input.value.trim()))searchData();});})();
 </script>
 </body><chatgpt-sidebar data-rendered="true" data-gpts-theme="light"></chatgpt-sidebar></html>
