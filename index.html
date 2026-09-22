@@ -1488,4 +1488,68 @@ window.addEventListener('resize',resize);window.addEventListener('load',resize);
 (()=>{const input=document.getElementById('partCodeInput'),warning=document.getElementById('productMissingWarning');input.addEventListener('input',()=>{const row=excelData.find(r=>String(r.partcode??'').trim().toLowerCase()===input.value.trim().toLowerCase());warning._validationToken=null;warning.hidden=true;if(row)showProductWarning(row,warning)});})();
 </script>
 
+<style>
+
+.small-page{width:194mm;height:281mm;display:grid;grid-template-columns:repeat(2,95mm);grid-template-rows:repeat(8,32.5mm);column-gap:4mm;row-gap:3mm;break-after:page;break-inside:avoid;background:white}
+.small-page:last-child{break-after:auto}
+.small-label{width:95mm;height:32.5mm;border:.35mm solid black;background:white;color:black;display:grid;grid-template-columns:8mm minmax(0,1fr) 29mm;overflow:hidden;break-inside:avoid}
+.small-label *{font-family:'Times New Roman',serif;min-width:0;box-sizing:border-box}
+.small-brand{position:relative;border-right:.15mm solid #aaa}
+.small-brand img{position:absolute;width:28mm;height:7mm;object-fit:contain;left:50%;top:50%;transform:translate(-50%,-50%) rotate(-90deg)}
+.small-fields{display:grid;grid-template-rows:repeat(4,minmax(0,1fr));padding:.8mm 1mm}
+.small-row{display:grid;grid-template-columns:19mm minmax(0,1fr);align-items:center;border-bottom:.15mm dotted #999;min-height:0}
+.small-row:last-child{border-bottom:0}
+.small-row span{font-size:6.5pt;font-weight:bold;white-space:nowrap}
+.small-row strong{font-size:8pt;white-space:nowrap;border-left:.15mm dotted #aaa;padding-left:1mm;overflow:hidden}
+.small-photo{padding:1.5mm;display:flex;align-items:center;justify-content:center;min-height:0}
+.small-photo img{width:100%;height:100%;object-fit:contain}
+#smallLabelOptions{line-height:1.7;font-size:13px}
+.label-mode-nav{flex-wrap:wrap}.label-mode-nav button{min-width:110px}
+@media print{#smallLabelOptions{display:none!important}.small-page{margin:0}}
+
+body.smtl-mode .label-grid{width:281mm}
+body.smtl-mode .preview-area{min-width:297mm}
+@media(max-width:1100px){body.smtl-mode .preview-area{min-width:0}body.smtl-mode .label-grid{zoom:calc(var(--mobile-preview-scale,1) * 194 / 281)}}
+
+.label-mode-nav{display:flex;gap:8px;margin:14px 0}.label-mode-nav button{flex:1;padding:12px;border:1px solid #64748b;border-radius:8px;background:#272c3b;color:white;cursor:pointer}.label-mode-nav button[aria-pressed=true]{background:#2563eb;border-color:#60a5fa}
+#smtlOptions{line-height:1.6}#smtlOptions p{font-size:12px;margin-bottom:12px}
+.smtl-page{width:281mm;display:grid;grid-template-columns:138.5mm 138.5mm;grid-template-rows:96mm 96mm;gap:2mm 4mm;break-after:page;break-inside:avoid}.smtl-page:last-child{break-after:auto}
+.smtl-label{width:138.5mm;height:96mm;border:.4mm solid black;background:white;color:black;overflow:hidden;display:grid;grid-template-rows:10.5mm 5mm 1fr}.smtl-label *{font-family:'Times New Roman',serif;box-sizing:border-box;min-width:0}
+.smtl-header{display:grid;grid-template-columns:55% 45%;border-bottom:.4mm solid black}.smtl-header img{width:23mm;height:10mm;object-fit:contain}.smtl-rohs{border-left:.3mm solid black;display:grid;place-items:center;font-weight:bold;font-size:10pt}
+.smtl-customer{display:grid;grid-template-columns:14mm 1fr;border-bottom:.25mm solid black;align-items:center}.smtl-caption{font-size:6.5pt;padding:.5mm}.smtl-customer strong{font-size:9pt;border-left:.2mm dotted black;padding:.5mm;height:100%;align-content:center;white-space:nowrap}
+.smtl-body{display:grid;grid-template-columns:55% 45%;min-height:0}.smtl-left{display:grid;grid-template-rows:7mm 8mm 8mm 1fr;min-height:0}.smtl-data{display:grid;grid-template-columns:14mm 1fr;border-bottom:.2mm dotted black;align-items:center}.smtl-value{font-size:9pt;font-weight:bold;border-left:.2mm dotted black;height:100%;padding:.5mm;align-content:center;overflow-wrap:anywhere}.smtl-code{font-size:15pt;white-space:nowrap}.smtl-qty{font-size:24pt;font-style:italic;text-align:center}.smtl-product{display:grid;grid-template-columns:20mm 1fr;min-height:0;border-top:.2mm solid black}.smtl-plant{display:grid;grid-template-rows:4mm 1fr;border-right:.2mm solid black;text-align:center}.smtl-plant span{font-size:8pt;border-bottom:.2mm solid black}.smtl-plant strong{font-size:23pt;align-content:center;overflow-wrap:anywhere}.smtl-photo{position:relative;margin:2mm;min-height:0}.smtl-photo img{position:absolute;width:100%;height:100%;object-fit:contain}
+.smtl-right{border-left:.3mm solid black;display:grid;grid-template-rows:7mm 8mm 8mm 5mm 6mm 6mm 1fr;min-height:0}.smtl-right-row{display:grid;grid-template-columns:14mm 1fr;border-bottom:.2mm dotted black;align-items:center}.smtl-right-row span{font-size:6pt;padding:.5mm}.smtl-right-row b{font-size:8pt;font-weight:normal;border-left:.2mm dotted black;text-align:center;padding:.4mm;height:100%;align-content:center;overflow-wrap:anywhere}.smtl-right-row:first-child b{font-weight:bold;font-size:7pt}.smtl-po{font-size:8pt;padding:.6mm;align-content:center;border-bottom:.2mm dotted black}
+@media print{.label-mode-nav,#smtlOptions{display:none!important}.smtl-page{margin:0;break-inside:avoid}.label-grid{gap:0!important}}
+</style>
+<script>
+(()=>{
+const $=id=>document.getElementById(id);
+if(!$('labelMode')){
+const nav=document.createElement('nav');nav.className='label-mode-nav';nav.setAttribute('aria-label','เลือกรูปแบบฉลาก');nav.innerHTML='<button type="button" data-mode="standard">LABEL เดิม · 8 ช่อง</button><button type="button" data-mode="smtl">SMTL · 4 ช่อง</button><input type="hidden" id="labelMode" value="standard">';document.querySelector('.panel-header').after(nav);
+const options=document.createElement('div');options.id='smtlOptions';options.className='form-group';options.innerHTML='<h4>LABEL SMTL</h4><p>A4 แนวนอน · 4 ช่อง (2 × 2) · ฉลาก 138.5 × 96 มม. · ขอบกระดาษ 8 มม. · พิมพ์ 100% และปิดหัว/ท้ายกระดาษ</p><div class="form-row"><label for="smtlPlant">Plant</label><input id="smtlPlant" value="PDE"></div><p>ใช้ช่องข้อมูลสินค้า จำนวนรวม และจำนวนต่อกล่องด้านล่าง เช่น 288 ÷ 72 = 4 ฉลาก</p>';nav.after(options);
+}
+if(!document.querySelector('[data-mode="small"]')){const button=document.createElement('button');button.type='button';button.dataset.mode='small';button.textContent='ลาเบลเล็ก · 16 ช่อง';document.querySelector('.label-mode-nav').append(button);}
+if(!$('smallLabelOptions')){const info=document.createElement('div');info.id='smallLabelOptions';info.className='form-group';info.innerHTML='<h4>ลาเบลขนาดเล็ก · 2 × 8</h4><p>A4 แนวตั้ง · 16 ฉลากต่อแผ่น · ฉลาก 95 × 32.5 มม. · ขอบกระดาษ 8 มม.</p><p>พิมพ์ขนาดจริง 100% และปิดหัว/ท้ายกระดาษ<br>จำนวนฉลากคำนวณจากจำนวนรวม ÷ จำนวนต่อกล่อง เช่น 3,200 ÷ 200 = 16 ฉลาก</p>';document.querySelector('.label-mode-nav').after(info);}
+['labelMode','smtlPlant'].forEach(id=>{if(SAVED_LABEL_STATE.form?.[id])$(id).value=SAVED_LABEL_STATE.form[id].value});
+const original=renderLabels;
+function fit(){document.querySelectorAll('.small-row strong,.smtl-value,.smtl-customer strong,.smtl-right-row b,.smtl-plant strong,.smtl-po').forEach(el=>{el.style.fontSize='';let size=parseFloat(getComputedStyle(el).fontSize);while((el.scrollWidth>el.clientWidth||el.scrollHeight>el.clientHeight)&&size>5){size-=.25;el.style.fontSize=size+'px'}})}
+renderLabels=function(boxes,...args){
+if($('labelMode').value==='small'){
+const container=$('labelContainer');container.replaceChildren();const v=id=>escapeHTML($(id).value.trim());let page;
+boxes.forEach((box,i)=>{if(i%16===0){page=document.createElement('div');page.className='small-page';container.append(page)}const label=document.createElement('article');label.className='small-label';
+const row=(title,value)=>`<div class="small-row"><span>${title} :</span><strong>${value}</strong></div>`;
+label.innerHTML=`<div class="small-brand"><img src="${LOGO_PATH}" alt="RUI PENG FEI"></div><div class="small-fields">${row('Part Code',v('partCodeInput'))}${row('Quantity',box.qty.toLocaleString()+' Pcs.')}${row('Prod Date',escapeHTML(formatDateToDDMMYYYY($('prodDate').value)))}${row('Lot No.',v('lotNo'))}</div><div class="small-photo">${currentImg?`<img src="${escapeHTML(currentImg)}" alt="รูปสินค้า" style="filter:${$('grayscaleToggle').checked?'grayscale(1)':'none'}">`:''}</div>`;page.append(label)});
+$('calcResult').innerHTML=`รวม <strong>${boxes.length}</strong> ฉลากเล็ก • <strong>${Math.ceil(boxes.length/16)}</strong> แผ่น A4 แนวตั้ง (2 × 8 ช่อง)`;fit();return;
+}
+if($('labelMode').value!=='smtl')return original(boxes,...args);
+const container=$('labelContainer');container.replaceChildren();const v=id=>escapeHTML($(id).value.trim());let page;
+const row=(caption,value)=>`<div class="smtl-right-row"><span>${caption}</span><b>${value}</b></div>`;
+boxes.forEach((box,i)=>{if(i%4===0){page=document.createElement('div');page.className='smtl-page';container.append(page)}const label=document.createElement('article');label.className='smtl-label';label.innerHTML=`<div class="smtl-header"><img src="${LOGO_PATH}" alt="RUI PENG FEI"><div class="smtl-rohs">RoHS</div></div><div class="smtl-customer"><span class="smtl-caption">Customer :</span><strong>${v('customer')}</strong></div><div class="smtl-body"><div class="smtl-left"><div class="smtl-data"><span class="smtl-caption">Part Code :</span><div class="smtl-value smtl-code">${v('partCodeInput')}</div></div><div class="smtl-data"><span class="smtl-caption">Material</span><div class="smtl-value">${v('material')}</div></div><div class="smtl-data"><span class="smtl-caption">Q'ty / Pcs :</span><div class="smtl-value smtl-qty">${box.qty.toLocaleString()}</div></div><div class="smtl-product"><div class="smtl-plant"><span>Plant</span><strong>${v('smtlPlant')}</strong></div><div class="smtl-photo">${currentImg?`<img src="${escapeHTML(currentImg)}" alt="รูปสินค้า">`:''}</div></div></div><div class="smtl-right">${row('Part Name :',v('partName'))}<div class="smtl-po"><strong>PO No./Item</strong> ${v('poNo')}</div>${row('Lot No. :',v('lotNo'))}${row('Prod Date :',escapeHTML(formatDateToDDMMYYYY($('prodDate').value)))}${row('Packed by:',v('packedBy'))}${row('Qc Checked by:',v('qcBy'))}<div></div></div></div>`;page.append(label)});
+$('calcResult').innerHTML=`รวม <strong>${boxes.length}</strong> ฉลาก SMTL • <strong>${Math.ceil(boxes.length/4)}</strong> แผ่น A4 แนวนอน (4 ช่องต่อแผ่น)`;fit();
+};
+function activate(){const smtl=$('labelMode').value==='smtl';$('smtlOptions').hidden=!smtl;$('smallLabelOptions').hidden=$('labelMode').value!=='small';document.body.classList.toggle('smtl-mode',smtl);let printStyle=$('smtlPrintOrientation');if(!printStyle){printStyle=document.createElement('style');printStyle.id='smtlPrintOrientation';document.head.append(printStyle)}printStyle.textContent='@media print{@page{size:A4 '+(smtl?'landscape':'portrait')+';margin:8mm}body.smtl-mode .label-grid{width:281mm;zoom:1!important}body.smtl-mode .preview-area{min-width:0!important}}';document.querySelectorAll('[data-mode]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.mode===$('labelMode').value)));calculateAndGenerate()}
+document.querySelectorAll('[data-mode]').forEach(b=>b.onclick=()=>{$('labelMode').value=b.dataset.mode;activate()});$('smtlPlant').addEventListener('input',calculateAndGenerate);
+document.querySelector('.control-panel').addEventListener('input',e=>{if(e.target.matches('input:not([type=file])')&&e.target.id!=='partCodeInput')calculateAndGenerate()});window.addEventListener('beforeprint',fit);if(!SAVED_LABEL_STATE.form?.labelMode)$('labelMode').value='small';activate();
+})();
+</script>
 </body><chatgpt-sidebar data-rendered="true" data-gpts-theme="light"></chatgpt-sidebar></html>
