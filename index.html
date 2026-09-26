@@ -845,7 +845,7 @@ body {display:block!important; padding:0!important; margin:0!important; backgrou
 <button type="button" id="saveHtmlWithImagesButton">บันทึก HTML พร้อมรูปทั้งหมด</button>
 <small style="color:#94a3b8">หลังเพิ่มรูป กดบันทึกแล้วใช้ไฟล์ HTML ที่ดาวน์โหลดใหม่ รูป ข้อมูลสินค้าที่โหลดแล้ว และฉลากปัจจุบันจะติดไปด้วย</small>
 </div>
-<div class="form-row"><label>เลือกรูปชิ้นงาน</label><input id="productImageFile" type="file" accept="image/*"></div>
+<section id="imageFitPanel" style="padding:12px;border:1px solid #4acaba;border-radius:12px;margin:12px 0"></section><div class="form-row"><label>เลือกรูปชิ้นงาน</label><input id="productImageFile" type="file" accept="image/*"></div>
 <div class="form-row">
 <label>เลขที่ล็อต</label>
 <input type="text" id="lotNo" placeholder="เช่น LOT-2026-001" value="">
@@ -1862,7 +1862,7 @@ function renderLabels(boxes, showDocNo, showBarcode, showPre, preValue) {
     <div class="data-row"><span class="field-title">Part Code :</span><span class="field-value part-code-value">${value('partCodeInput')}</span></div>
     <div class="data-row"><span class="field-title">Material</span><span class="field-value">${value('material')}</span></div>
     <div class="data-row"><span class="field-title">Q'ty / Pcs</span><span class="field-value qty-value">${box.qty.toLocaleString()}</span></div>
-    <div class="product-zone"><div class="boi-box ${boi.toLowerCase()}">${boi}</div><div class="product-img-box">${currentImg ? `<img class="product-img ${document.getElementById('grayscaleToggle').checked?'grayscale':''}" src="${escapeHTML(currentImg)}" alt="" onerror="this.style.display='none'">`:''}</div></div>
+    <div class="product-zone"><div class="boi-box ${boi.toLowerCase()}">${boi}</div><div class="product-img-box">${currentImg ? `<img data-part-code="${escapeHTML(document.getElementById('partCodeInput').value.trim())}" class="product-img ${document.getElementById('grayscaleToggle').checked?'grayscale':''}" src="${escapeHTML(currentImg)}" alt="" onerror="this.style.display='none'">`:''}</div></div>
     <div class="label-footer"><div class="extra-line">${[showPre?escapeHTML(preValue):'',showDocNo?value('docNumber'):''].filter(Boolean).join(' ')}</div>${showBarcode&&barcode?`<div class="barcode-container"><svg class="barcode-svg" id="barcode-${index}"></svg><div class="barcode-text">${barcode}</div></div>`:''}</div>
    </div><div class="right-fields">
     <div class="right-row">Part Name : ${value('partName')}</div>
@@ -2010,13 +2010,13 @@ if($('labelMode').value==='small'){
 const container=$('labelContainer');container.replaceChildren();const v=id=>escapeHTML($(id).value.trim());let page;
 boxes.forEach((box,i)=>{if(i%16===0){page=document.createElement('div');page.className='small-page';container.append(page)}const label=document.createElement('article');label.className='small-label';
 const row=(title,value)=>`<div class="small-row"><span>${title} :</span><strong>${value}</strong></div>`;
-label.innerHTML=`<div class="small-brand"><img src="${LOGO_PATH}" alt="RUI PENG FEI"></div><div class="small-fields">${row('Part Code',v('partCodeInput'))}${row('Quantity',box.qty.toLocaleString()+' Pcs.')}${row('Prod Date',escapeHTML(formatDateToDDMMYYYY($('prodDate').value)))}${row('Lot No.',v('lotNo'))}</div><div class="small-photo">${currentImg?`<img src="${escapeHTML(currentImg)}" alt="รูปสินค้า" style="filter:${$('grayscaleToggle').checked?'grayscale(1)':'none'}">`:''}</div>`;page.append(label)});
+label.innerHTML=`<div class="small-brand"><img src="${LOGO_PATH}" alt="RUI PENG FEI"></div><div class="small-fields">${row('Part Code',v('partCodeInput'))}${row('Quantity',box.qty.toLocaleString()+' Pcs.')}${row('Prod Date',escapeHTML(formatDateToDDMMYYYY($('prodDate').value)))}${row('Lot No.',v('lotNo'))}</div><div class="small-photo">${currentImg?`<img data-part-code="${escapeHTML(document.getElementById('partCodeInput').value.trim())}" src="${escapeHTML(currentImg)}" alt="รูปสินค้า" style="filter:${$('grayscaleToggle').checked?'grayscale(1)':'none'}">`:''}</div>`;page.append(label)});
 $('calcResult').innerHTML=`รวม <strong>${boxes.length}</strong> ฉลากเล็ก • <strong>${Math.ceil(boxes.length/16)}</strong> แผ่น A4 แนวตั้ง (2 × 8 ช่อง)`;fit();return;
 }
 if($('labelMode').value!=='smtl')return original(boxes,...args);
 const container=$('labelContainer');container.replaceChildren();const v=id=>escapeHTML($(id).value.trim());let page;
 const row=(caption,value)=>`<div class="smtl-right-row"><span>${caption}</span><b>${value}</b></div>`;
-boxes.forEach((box,i)=>{if(i%4===0){page=document.createElement('div');page.className='smtl-page';container.append(page)}const label=document.createElement('article');label.className='smtl-label';label.innerHTML=`<div class="smtl-header"><img src="${LOGO_PATH}" alt="RUI PENG FEI"><div class="smtl-rohs">RoHS</div></div><div class="smtl-customer"><span class="smtl-caption">Customer :</span><strong>${v('customer')}</strong></div><div class="smtl-body"><div class="smtl-left"><div class="smtl-data"><span class="smtl-caption">Part Code :</span><div class="smtl-value smtl-code">${v('partCodeInput')}</div></div><div class="smtl-data"><span class="smtl-caption">Material</span><div class="smtl-value">${v('material')}</div></div><div class="smtl-data"><span class="smtl-caption">Q'ty / Pcs :</span><div class="smtl-value smtl-qty">${box.qty.toLocaleString()}</div></div><div class="smtl-product"><div class="smtl-plant"><span>Plant</span><strong>${v('smtlPlant')}</strong></div><div class="smtl-photo">${currentImg?`<img src="${escapeHTML(currentImg)}" alt="รูปสินค้า">`:''}</div></div></div><div class="smtl-right">${row('Part Name :',v('partName'))}<div class="smtl-po"><strong>PO No./Item</strong> ${v('poNo')}</div>${row('Lot No. :',v('lotNo'))}${row('Prod Date :',escapeHTML(formatDateToDDMMYYYY($('prodDate').value)))}${row('Packed by:',v('packedBy'))}${row('Qc Checked by:',v('qcBy'))}<div></div></div></div>`;page.append(label)});
+boxes.forEach((box,i)=>{if(i%4===0){page=document.createElement('div');page.className='smtl-page';container.append(page)}const label=document.createElement('article');label.className='smtl-label';label.innerHTML=`<div class="smtl-header"><img src="${LOGO_PATH}" alt="RUI PENG FEI"><div class="smtl-rohs">RoHS</div></div><div class="smtl-customer"><span class="smtl-caption">Customer :</span><strong>${v('customer')}</strong></div><div class="smtl-body"><div class="smtl-left"><div class="smtl-data"><span class="smtl-caption">Part Code :</span><div class="smtl-value smtl-code">${v('partCodeInput')}</div></div><div class="smtl-data"><span class="smtl-caption">Material</span><div class="smtl-value">${v('material')}</div></div><div class="smtl-data"><span class="smtl-caption">Q'ty / Pcs :</span><div class="smtl-value smtl-qty">${box.qty.toLocaleString()}</div></div><div class="smtl-product"><div class="smtl-plant"><span>Plant</span><strong>${v('smtlPlant')}</strong></div><div class="smtl-photo">${currentImg?`<img data-part-code="${escapeHTML(document.getElementById('partCodeInput').value.trim())}" src="${escapeHTML(currentImg)}" alt="รูปสินค้า">`:''}</div></div></div><div class="smtl-right">${row('Part Name :',v('partName'))}<div class="smtl-po"><strong>PO No./Item</strong> ${v('poNo')}</div>${row('Lot No. :',v('lotNo'))}${row('Prod Date :',escapeHTML(formatDateToDDMMYYYY($('prodDate').value)))}${row('Packed by:',v('packedBy'))}${row('Qc Checked by:',v('qcBy'))}<div></div></div></div>`;page.append(label)});
 $('calcResult').innerHTML=`รวม <strong>${boxes.length}</strong> ฉลาก SMTL • <strong>${Math.ceil(boxes.length/4)}</strong> แผ่น A4 แนวนอน (4 ช่องต่อแผ่น)`;fit();
 };
 function activate(){const smtl=$('labelMode').value==='smtl';$('smtlOptions').hidden=!smtl;$('smallLabelOptions').hidden=$('labelMode').value!=='small';$('qtyPerBox').closest('.form-row').hidden=$('labelMode').value==='small';document.body.classList.toggle('smtl-mode',smtl);let printStyle=$('smtlPrintOrientation');if(!printStyle){printStyle=document.createElement('style');printStyle.id='smtlPrintOrientation';document.head.append(printStyle)}printStyle.textContent='@media print{@page{size:A4 '+(smtl?'landscape':'portrait')+';margin:8mm}body.smtl-mode .label-grid{width:281mm;zoom:1!important}body.smtl-mode .preview-area{min-width:0!important}}';document.querySelectorAll('[data-mode]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.mode===$('labelMode').value)));calculateAndGenerate()}
@@ -2279,4 +2279,62 @@ $('multiPartPage').hidden=true;document.body.classList.remove('mp-open');$('mpPo
  for(const id of ['primaxInner','primaxOuter'])observer.observe(document.getElementById(id),{attributes:true,attributeFilter:['aria-pressed']});
  observer.observe(document.getElementById('primaxPanel'),{attributes:true,attributeFilter:['hidden']});sync();
 })();
+</script><style id="imageFitStyles">
+.product-img-box,.small-photo,.smtl-photo{position:relative!important;overflow:hidden!important}
+#imageFitPanel p{font-size:12px;margin:8px 0}#imageFitPanel small{display:block;font-size:11px;line-height:1.6;opacity:.8}#imageFitSize{width:100%}#imageFitReset{margin:8px 0;padding:6px 12px;cursor:pointer}
+@media print{#imageFitPanel{display:none!important}}
+</style><script id="imageFitSettings" type="application/json">{}</script><script>
+(() => {
+'use strict';
+const selector='.product-img-box img,.small-photo img,.smtl-photo img';
+const settingsNode=document.getElementById('imageFitSettings');
+let settings={};try{settings=JSON.parse(settingsNode.textContent)}catch{}
+const cache=new Map();
+const activeCode=()=>document.getElementById('partCodeInput').value.trim();
+const pref=code=>Object.assign({size:85,crop:true},settings[code]);
+const persist=()=>{settingsNode.textContent=JSON.stringify(settings).replace(/</g,'\\u003c')};
+const panel=document.getElementById('imageFitPanel');
+panel.innerHTML='<strong>การจัดรูปสินค้า</strong><p>จัดกึ่งกลาง เว้นขอบ และจำค่าแยกตามรหัสสินค้า</p><label>ขนาดรูป <output id="imageFitValue"></output><input id="imageFitSize" type="range" min="40" max="100" step="5"></label><label style="display:block"><input id="imageFitCrop" type="checkbox"> ตัดเฉพาะขอบขาวส่วนเกิน</label><button id="imageFitReset" type="button">คืนค่าอัตโนมัติ</button><p id="imageFitStatus" role="status"></p><small>จำกัดการขยายให้มีความละเอียดอย่างน้อยประมาณ 150 ppi บนกระดาษ รูปเส้นควรใช้ต้นฉบับความละเอียดสูงหรือ SVG จากแบบจริง</small>';
+const range=document.getElementById('imageFitSize'),crop=document.getElementById('imageFitCrop'),status=document.getElementById('imageFitStatus');
+function sync(){const p=pref(activeCode());range.value=p.size;crop.checked=p.crop;document.getElementById('imageFitValue').value=p.size+'%';}
+function inspect(src){
+ if(cache.has(src))return cache.get(src);
+ const promise=new Promise(resolve=>{const original=new Image();original.onload=()=>{
+  const w=original.naturalWidth,h=original.naturalHeight;
+  const base={src,w,h,cropSrc:src,cw:w,ch:h,vector:/^data:image\/svg\+xml|\.svg(?:[?#]|$)/i.test(src)};
+  if(base.vector||w*h>16000000){resolve(base);return}
+  try{const canvas=document.createElement('canvas');canvas.width=w;canvas.height=h;const ctx=canvas.getContext('2d',{willReadFrequently:true});ctx.drawImage(original,0,0);const data=ctx.getImageData(0,0,w,h).data;
+   let left=w,top=h,right=-1,bottom=-1;
+   for(let y=0;y<h;y++)for(let x=0;x<w;x++){const i=(y*w+x)*4;if(data[i+3]>16&&(data[i]<248||data[i+1]<248||data[i+2]<248)){left=Math.min(left,x);right=Math.max(right,x);top=Math.min(top,y);bottom=Math.max(bottom,y)}}
+   if(right>=left){const pad=Math.max(2,Math.ceil(Math.max(right-left+1,bottom-top+1)*.025));left=Math.max(0,left-pad);top=Math.max(0,top-pad);right=Math.min(w-1,right+pad);bottom=Math.min(h-1,bottom+pad);base.cw=right-left+1;base.ch=bottom-top+1;
+    const cut=document.createElement('canvas');cut.width=base.cw;cut.height=base.ch;cut.getContext('2d').drawImage(original,left,top,base.cw,base.ch,0,0,base.cw,base.ch);base.cropSrc=cut.toDataURL('image/png');
+   }
+  }catch{base.unavailable=true}resolve(base);
+ };original.onerror=()=>resolve(null);original.src=src});cache.set(src,promise);return promise;
+}
+async function fit(img){
+ const source=img.dataset.originalImage||img.getAttribute('src');if(!source)return;
+ img.dataset.originalImage=source;
+ const info=await inspect(source);if(!info||!img.isConnected)return;
+ const code=img.dataset.partCode||activeCode(),p=pref(code),w=p.crop?info.cw:info.w,h=p.crop?info.ch:info.h;
+ const parent=img.parentElement;
+ const bw=parent.clientWidth,bh=parent.clientHeight;if(!bw||!bh)return;
+ const desired=Math.min(bw*p.size/100/w,bh*p.size/100/h);
+ const scale=info.vector?desired:Math.min(desired,96/150);
+ img.src=p.crop?info.cropSrc:source;
+ Object.assign(img.style,{position:'absolute',inset:'auto',left:'50%',top:'50%',transform:'translate(-50%,-50%)',width:(w*scale)+'px',height:(h*scale)+'px',maxWidth:'100%',maxHeight:'100%',objectFit:'contain'});
+ if(code===activeCode())status.textContent=info.vector?'ภาพเวกเตอร์: ขยายได้โดยคงความคมชัด':`${w} × ${h} พิกเซล${desired>scale+.001?' • จำกัดขนาดเพื่อรักษาความคมชัด หากต้องการใหญ่กว่านี้ให้เปลี่ยนรูปต้นฉบับ':' • ขนาดเหมาะสมกับพื้นที่พิมพ์'}${info.unavailable?' • ไม่สามารถตรวจขอบขาวของรูปนี้ได้':''}`;
+}
+let pending=false;function refresh(){if(pending)return;pending=true;requestAnimationFrame(()=>{pending=false;sync();const images=document.querySelectorAll(selector);if(!images.length)status.textContent='เลือกรหัสสินค้าที่มีรูปเพื่อดูผล';images.forEach(fit)})}
+function update(){const code=activeCode();if(!code){status.textContent='เลือกรหัสสินค้าก่อนปรับรูป';return}settings[code]={size:Number(range.value),crop:crop.checked};persist();refresh()}
+range.addEventListener('input',update);crop.addEventListener('change',update);
+document.getElementById('imageFitReset').onclick=()=>{delete settings[activeCode()];persist();refresh()};
+document.getElementById('partCodeInput').addEventListener('input',refresh);
+new MutationObserver(refresh).observe(document.getElementById('labelContainer'),{childList:true,subtree:true});
+const mp=document.getElementById('mpPreview');if(mp)new MutationObserver(refresh).observe(mp,{childList:true,subtree:true});
+window.addEventListener('resize',refresh);window.addEventListener('load',refresh);
+window.addEventListener('beforeprint',()=>document.querySelectorAll(selector).forEach(fit));
+refresh();
+})();
+
 </script></body></html>
